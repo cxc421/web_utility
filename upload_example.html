@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<!--
+Created using JS Bin
+http://jsbin.com
+
+Copyright (c) 2017 by anonymous (http://jsbin.com/dahuqodacu/2/edit)
+
+Released under the MIT license: http://jsbin.mit-license.org
+-->
+<meta name="robots" content="noindex">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+<script src="https://code.jquery.com/jquery.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <title>JS Bin</title>
+<style id="jsbin-css">
+.upload-area, .upload-status {
+  border: solid 1px gray;
+  padding: 20px;
+  width: 550px;
+  margin-top: 20px;
+  position: relative;
+}
+.file-name {
+  line-height: 30px
+}
+
+.upload-area .row {
+  margin-top: 10px;
+}
+.upload-area .row:first-child {
+  margin-top: 0;
+}
+
+.upload-block {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  //background: pink;
+  cursor: wait;
+  display:none;
+}
+
+
+.upload-status {
+  border: none;
+  padding-top: 0px;
+  padding-left: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+
+</style>
+</head>
+<body>
+  <div class="upload-area container-fluid">
+    <form id="upload-form">
+    <div class="row">
+      <div class="col-xs-3">
+        <input id="hide_selectTgzBtn" class="hide hide-file-input" accept=".tgz" type="file" data-filename-id="tgz-file-name"/>
+        <span id="tgz-btn" class="btn btn-default btn-block" >Select TGZ</span>        
+      </div>
+      <div class="col-xs-9">
+        <span id="tgz-file-name" class='file-name'>Not Select</span>
+      </div>      
+    </div>
+    <div class="row">
+      <div class="col-xs-3">
+        <input id="hide_selectMd5Btn" class="hide hide-file-input" accept=".md5" type="file" data-filename-id="md5-file-name"/>
+        <span id="md5-btn" class="btn btn-default btn-block">Select MD5</span>        
+      </div>
+      <div class="col-xs-9">
+        <span id="md5-file-name" class='file-name'>Not Select</span>
+      </div>            
+    </div>
+    <div class="row">
+      <div class="col-xs-6">
+        <span id="apply-btn" class="btn btn-info btn-block">Apply</span>
+      </div>
+      <div class="col-xs-6">
+        <span id="cancel-btn" class="btn btn-danger btn-block">Cancel</span>
+      </div>      
+    </div>
+    </form>
+    <div class="upload-block"></div>
+  </div>
+  <div class="container-fluid upload-status">
+    <span>Status:</span>
+    <span>IDLE</span>
+  </div>
+<script id="jsbin-javascript">
+console.clear();
+
+var jqueryMap = {
+  $uploadArea   : $('.upload-area'),
+  $uploadForm   : $('#upload-form'),
+  $hideFileInput: $('.hide-file-input'),
+  $cancelBtn    : $('#cancel-btn'),
+  $applyBtn     : $('#apply-btn'),
+  $fileNames    : $('.file-name'),
+  $tgzFileInput : $('#hide_selectTgzBtn'),
+  $md5FileInput : $('#hide_selectMd5Btn'),
+  $statusSpan   : $('.upload-status')
+};
+
+
+jqueryMap.$uploadArea.find('.btn').click(function(){
+  $(this).parent().find('.hide').click(); 
+});
+ 
+
+jqueryMap.$hideFileInput.change(function(){  
+  if(this.files.length<1){
+    return;
+  }
+  var file = this.files[0];
+  var filename = file.name;
+  var filesize = file.size;
+  var fileunit = " B";
+  
+  if(file.size/Math.pow(1024,4)>=1){
+    filesize = new Number(file.size/Math.pow(1024,4)).toFixed(2);
+    fileunit = " TB";
+  }else if(file.size/Math.pow(1024,3)>=1){
+    filesize = new Number(file.size/Math.pow(1024,3)).toFixed(2);
+    fileunit = " GB";
+  }else if(file.size/Math.pow(1024,2)>=1){
+    filesize = new Number(file.size/Math.pow(1024,2)).toFixed(2);
+    fileunit = " MB";
+  }else if(file.size/Math.pow(1024,1)>=1){
+    filesize = new Number(file.size/Math.pow(1024,1)).toFixed(2);
+    fileunit = " KB";
+  }else{
+    fileunit = " B";
+  }  
+  
+  var spanId = $(this).data('filename-id');  
+  $('#' + spanId ).text(filename+" (" + filesize + fileunit + ")");
+});
+
+jqueryMap.$cancelBtn.click(function(){
+  //console.log('before');
+  //console.log($('#hide_selectTgzBtn')[0].files[0]);
+  jqueryMap.$uploadForm[0].reset(); 
+  //console.log('after');  
+  //console.log($('#hide_selectTgzBtn')[0].files[0]);
+  jqueryMap.$fileNames.text('Not Select');
+});
+
+jqueryMap.$applyBtn.click(function(){
+   if(!jqueryMap.$tgzFileInput[0].files[0] 
+   || !jqueryMap.$md5FileInput[0].files[0]){
+     alert('Have empty file');
+     return;
+   }
+  if((jqueryMap.$tgzFileInput[0].files[0].name+".md5")!==jqueryMap.$md5FileInput[0].files[0].name){
+     alert('Wrong file name');
+     return;    
+  }
+  var formData = new FormData();
+  formData.append("file1", jqueryMap.$tgzFileInput[0].files[0], jqueryMap.$tgzFileInput[0].files[0].name);
+  formData.append("file2", jqueryMap.$md5FileInput[0].files[0], jqueryMap.$md5FileInput[0].files[0].name);
+  
+  $('.upload-block').show(); 
+  mount(function(){
+    startUpload(formData,
+       function(){
+          jqueryMap.$statusSpan.text('Upload Success! Start Upgrading....');
+          upgrade(function(){
+            jqueryMap.$statusSpan.text('Upgrade Success!');
+            unmount(function(){
+              $('.upload-block').hide();  
+            });                      
+          });
+       },
+       function(){
+          jqueryMap.$statusSpan.text('Upload Failed!');
+          unmount(function(){
+            $('.upload-block').hide();  
+          });          
+       });    
+  });
+});
+
+function startUpload(formData, successCB, errorCB) {
+  $.ajax({
+    url: '/upload/uploadfile',
+    type: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(data,status,xhr){//傳送完畢
+      successCB();
+    },
+    error: function(xhr,status,err){
+      errorCB();
+    },
+    xhr: function () {
+      var xhr = $.ajaxSettings.xhr();
+      xhr.upload.onprogress = function (event) {
+        if (event.lengthComputable) {
+          //console.log(event.loaded,event.total);
+          jqueryMap.$statusSpan.text("Uploading.... "+new Number(100*event.loaded/event.total).toFixed(2)+"%");
+        }
+      };
+      return xhr;
+    }
+  });      
+}
+
+function mount(callback) {
+  $.ajax({
+    url: '/configuration/upgrade_folder_mount',
+    typel: 'GET',
+    dataType: 'json',
+    cache: false,
+    success: function(json) {
+      console.log(JSON.stringify(json));
+      callback();
+    },
+    error: function () {
+      alert('Mount failed: HTTP ERROR');
+    }
+  });
+}
+
+
+function unmount(callback) {
+  $.ajax({
+    url: '/configuration/upgrade_folder_unmount',
+    typel: 'GET',
+    dataType: 'json',
+    cache: false,
+    success: function(json) {
+      console.log(JSON.stringify(json));
+      callback();
+    },
+    error: function () {
+      alert('Unmount failed: HTTP ERROR');
+    }
+  });  
+}
+
+function upgrade(callback) {
+  var data = "fileName=" + jqueryMap.$tgzFileInput[0].files[0].name + "&";
+  console.log(data);
+  $.ajax({
+    url: '/configuration/upgrade',
+    typel: 'POST',
+    dataType: 'json',
+    data: data,
+    cache: false,
+    success: function(json) {
+      console.log(JSON.stringify(json));
+      callback();
+    },
+    error: function () {
+      alert('Upgrade failed: HTTP ERROR');
+    }
+  });    
+}
+
+
+</script>
+</body>
+</html>
